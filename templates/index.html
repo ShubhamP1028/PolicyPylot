@@ -637,9 +637,214 @@
                 max-width: 90%;
             }
         }
+
+        /* API Key Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+
+        .modal-header p {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .api-key-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+
+        .api-key-form input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .api-key-form input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        .api-key-help {
+            background-color: var(--light-blue);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .api-key-help p {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .api-key-help a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .api-key-help a:hover {
+            text-decoration: underline;
+        }
+
+        .modal-footer {
+            padding: 16px 24px 24px;
+            text-align: center;
+        }
+
+        .modal-footer .btn-primary {
+            width: 100%;
+            padding: 12px 24px;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background-color: var(--primary-blue-dark);
+        }
+
+        .modal-footer .btn-primary:disabled {
+            background-color: var(--gray-400);
+            cursor: not-allowed;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            padding: 16px 20px;
+            min-width: 300px;
+            max-width: 500px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .notification-success {
+            border-left: 4px solid var(--green-500);
+        }
+
+        .notification-error {
+            border-left: 4px solid var(--red-500);
+        }
+
+        .notification-info {
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .notification-content i {
+            font-size: 1.2rem;
+        }
+
+        .notification-success .notification-content i {
+            color: var(--green-500);
+        }
+
+        .notification-error .notification-content i {
+            color: var(--red-500);
+        }
+
+        .notification-info .notification-content i {
+            color: var(--primary-blue);
+        }
     </style>
 </head>
 <body>
+    <!-- API Key Configuration Modal -->
+    <div id="api-key-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Configure Gemini API Key</h2>
+                <p>To use DocuPi, you need a Google Gemini API key.</p>
+            </div>
+            <div class="modal-body">
+                <div class="api-key-form">
+                    <label for="api-key-input">Gemini API Key:</label>
+                    <input type="password" id="api-key-input" placeholder="Enter your Gemini API key">
+                    <div class="api-key-help">
+                        <p><strong>Don't have an API key?</strong></p>
+                        <p>Get yours at: <a href="https://makersuite.google.com/app/apikey" target="_blank">https://makersuite.google.com/app/apikey</a></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-api-key" class="btn-primary">
+                    <i class="fas fa-save"></i> Save & Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Left Sidebar - Document Management -->
         <div class="sidebar">
@@ -738,6 +943,121 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // API Key Modal Management
+            const apiKeyModal = document.getElementById('api-key-modal');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const saveApiKeyBtn = document.getElementById('save-api-key');
+            let apiKeyConfigured = false;
+            
+            // Check API key status on page load
+            async function checkApiKeyStatus() {
+                if (apiKeyConfigured) return;
+                
+                try {
+                    const response = await fetch('/api/config/status');
+                    const data = await response.json();
+                    console.log('🔍 API key status check:', data);
+                    
+                    if (data.api_key_configured) {
+                        apiKeyConfigured = true;
+                    } else if (!data.api_key_configured) {
+                        showApiKeyModal();
+                    }
+                } catch (error) {
+                    console.error('Error checking API key status:', error);
+                    showApiKeyModal();
+                }
+            }
+            
+            function showApiKeyModal() {
+                apiKeyModal.style.display = 'block';
+                apiKeyInput.focus();
+            }
+            
+            function hideApiKeyModal() {
+                apiKeyModal.style.display = 'none';
+            }
+            
+            async function saveApiKey() {
+                const apiKey = apiKeyInput.value.trim();
+                console.log('🔑 Attempting to save API key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'empty');
+                
+                if (!apiKey) {
+                    alert('Please enter your API key');
+                    return;
+                }
+                
+                saveApiKeyBtn.disabled = true;
+                saveApiKeyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating...';
+                
+                try {
+                    const requestBody = { api_key: apiKey };
+                    console.log('📤 Sending request:', requestBody);
+                    
+                    const response = await fetch('/api/config/api-key', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    console.log('📥 Response status:', response.status);
+                    const data = await response.json();
+                    console.log('📥 Response data:', data);
+                    
+                    if (data.success) {
+                        apiKeyConfigured = true;
+                        hideApiKeyModal();
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.error, 'error');
+                    }
+                } catch (error) {
+                    console.error('💥 Error saving API key:', error);
+                    showNotification('Error saving API key. Please try again.', 'error');
+                } finally {
+                    saveApiKeyBtn.disabled = false;
+                    saveApiKeyBtn.innerHTML = '<i class="fas fa-save"></i> Save & Continue';
+                }
+            }
+            
+            // Event listeners for API key modal
+            saveApiKeyBtn.addEventListener('click', saveApiKey);
+            apiKeyInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    saveApiKey();
+                }
+            });
+            
+            // Check API key status on load
+            checkApiKeyStatus();
+            
+            // Notification system
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                        <span>${message}</span>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+            
             // DOM Elements
             const chatInput = document.getElementById('chat-input');
             const sendButton = document.getElementById('send-btn');
